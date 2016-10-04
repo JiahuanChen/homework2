@@ -8,6 +8,13 @@ import sys
 import math
 import string
 import random
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("--calc", help="calculate length and distribution")
+parser.add_option("--save", help="save the parameter file")
+parser.add_option("--load", help="load the parameter file")
+(options, args) = parser.parse_args() 
 
 length = 70
 
@@ -15,7 +22,7 @@ def checkinput(arg):
     if len(arg) == 1:
         return 1;
     elif arg[1] == "--calc":
-        if len(arg) == 3 or arg[3] == "--save":
+        if len(arg) == 3 or arg[3] == "--save" or arg[3] == "--k":
             return 2
         else:
             return -1
@@ -166,6 +173,18 @@ def loadparams(filename):
             count = 0
     return names,sequence_length,distributions
 
+def k_mers(k, sequences):
+    distribution = []
+    for seq in sequences:
+        dictionary = {}
+        for i in range(0,len(seq),k):
+            if dictionary.get(seq[i:i+k]) == None:
+                dictionary[seq[i:i+k]] = 1
+            else:
+                dictionary[seq[i:i+k]] += 1
+        distribution.append(dictionary)
+    print(distribution)
+            
 
 # entrance
 if __name__ == '__main__':
@@ -193,7 +212,10 @@ if __name__ == '__main__':
         sequences = check(sequences)        
         print_sequences(sequences,names)
         if len(sys.argv) == 5:
-            save_parameter(distributions,sequences,names,sys.argv[4])
+            if sys.argv[3] == "--save":
+                save_parameter(distributions,sequences,names,sys.argv[4])
+            elif sys.argv[3] == "--k":
+                k_mers(int(sys.argv[4]), sequences)
     elif task == 3:
         names,sequence_length,distributions = loadparams(sys.argv[2])
         #use gaussian distribution to generate new lengths  
