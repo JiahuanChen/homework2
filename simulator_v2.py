@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 """
 Created on Mon Oct  3 21:30:10 2016
 
-@author: blowv6
+@author: Jiahuan Chen
 """
 import sys
 import math
@@ -165,9 +165,7 @@ def loadparams(filename):
             distributions.append(dictionary)
             count = 0
     return names,sequence_length,distributions
-            
-            
-        
+
 
 # entrance
 if __name__ == '__main__':
