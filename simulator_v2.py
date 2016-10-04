@@ -14,6 +14,9 @@ parser = OptionParser()
 parser.add_option("--calc", help="calculate length and distribution")
 parser.add_option("--save", help="save the parameter file")
 parser.add_option("--load", help="load the parameter file")
+parser.add_option("--k", help="report dinucleotide and higher-order \
+compositional statistics, must follow the \'--calc\' ")
+parser.add_option("--insert", help=" ")
 (options, args) = parser.parse_args() 
 
 length = 70
@@ -31,6 +34,10 @@ def checkinput(arg):
             return 3
         else:
             return -1
+    elif arg[1] == "--insert":
+        return 4
+    else:
+         return -1
 
 #input: list of ditribution(dictionary) and sequence_length(int)
 #function: generate random sequences that can be devided by 3
@@ -92,7 +99,8 @@ def compute_distribution(sequences):
 
 #input: list of distributions, sequences, names, filename
 #function: generate parameter file
-#file format: line1: name1; line2: length; line3: distribution(0~1), etc..
+#file format: line1: name1; line2: length; line3: distribution(0~1),
+#line4:user-specified motifs, etc..
 def save_parameter(distributions,sequences,names,filename):
     f = open(filename,"w")
     for i in range(0,len(names)):
@@ -101,6 +109,7 @@ def save_parameter(distributions,sequences,names,filename):
         for dis in distributions[i]:
             f.write(dis+ " ")
             f.write(str(distributions[i][dis])+ " ")
+        f.write("\n")
         f.write("\n")
     f.close()
     
@@ -155,6 +164,7 @@ def loadparams(filename):
     names = []
     sequence_length = []
     distributions = []
+    mofits = []
     count = 0
     for line in file.readlines():
         line = line.replace('\n','')
@@ -170,8 +180,11 @@ def loadparams(filename):
             for i in range(0,8,2):
                 dictionary[s[i]] = float(s[i+1])
             distributions.append(dictionary)
+            count += 1;
+        elif count == 3:
+            mofits.append(line)
             count = 0
-    return names,sequence_length,distributions
+    return names,sequence_length,distributions,mofits
 
 def k_mers(k, sequences):
     distribution = []
@@ -185,7 +198,43 @@ def k_mers(k, sequences):
         distribution.append(dictionary)
     print(distribution)
             
-
+def insert_mofit(sequences,mofits):
+    for i in range(0,len(sequences)):
+        position = random.randint(1,(len(sequences[i])-len(mofits[i]))/3)
+        position *= 3
+        sequences[i] = sequences[i][:position] + mofits[i]\
+        +sequences[i][position+len(mofits):]
+    return sequences
+    
+def edit_param(filename):
+    names,sequence_length,distributions,mofits = loadparams(filename)
+    print("There are", len(names),"sequences. Enter the sequence you \
+    want to edit. 0 to exit")
+    index = int(input())
+    f = open(filename,"r")
+    contant = f.readlines()
+    f.close()
+    f = open(filename,"w")
+    while(index != 0 and index <= len(names)):
+        mof = str(input("enter the mofit"))
+        mof_validation = True        
+        if len(mof)%3 != 0:
+            mof_validation = False
+        for i in range(0,len(mof),3):
+            for i in range(3,len(mof)-3,3):
+                if (mof[i:i+3] == "TAA" 
+                or mof[i:i+3] == "TAG" 
+                or mof[i:i+3] == "TGA"):
+                    mof_validation = False
+        if mof_validation:
+            contant[i*4-1] = mof
+        else:
+            print("Not validated!")
+        i = int(input("Which sequence?"))
+    f.writelines(contant)
+    f.close()
+    
+    
 # entrance
 if __name__ == '__main__':
     task = checkinput(sys.argv)
@@ -217,15 +266,18 @@ if __name__ == '__main__':
             elif sys.argv[3] == "--k":
                 k_mers(int(sys.argv[4]), sequences)
     elif task == 3:
-        names,sequence_length,distributions = loadparams(sys.argv[2])
+        names,sequence_length,distributions,mofits = loadparams(sys.argv[2])
         #use gaussian distribution to generate new lengths  
         #but the diviation will become rediculously large(several hundreds) 
         #thus the random sequences saperate in a very large range
-        sequence_length = gaussian(sequence_length)
+        #sequence_length = gaussian(sequence_length)
         sequences = generate_sequences(distributions,sequence_length)
-        sequences = check(sequences)        
+        sequences = check(sequences)
+        sequences = insert_mofit(sequences,mofits)
         print_sequences(sequences,names)
         if len(sys.argv) == 5:
             save_parameter(distributions,sequences,names,sys.argv[4])
+    elif task == 4:
+        edit_param(sys.argv[2])
     else:
         print("Please check your input!")
