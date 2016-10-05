@@ -1,8 +1,9 @@
 #! /usr/bin/python
 """
-Created on Mon Oct  3 21:30:10 2016
 
-@author: Jiahuan Chen
+
+Try to finished all three extra tasks. I used Gaussian distribution for the 
+reason that it is the most common distribute in statistics.
 """
 import sys
 import math
@@ -188,7 +189,7 @@ def loadparams(filename):
                 dictionary[s[i]] = float(s[i+1])
             distributions.append(dictionary)
             count += 1;
-        elif count == 3:ge
+        elif count == 3:
             mofits.append(line)
             count = 0
     return names,sequence_length,distributions,mofits
@@ -224,15 +225,17 @@ def insert_mofit(sequences,mofits):
 #function: add mofit to parameter
 def edit_param(filename):
     names,sequence_length,distributions,mofits = loadparams(filename)
-    print("There are", len(names),"sequences. Enter the sequence you \
-    want to edit. 0 to exit")
-    index = int(input())
+    print("There are "+str(len(names))+" sequences. Which sequence do you\
+ want to edit? Enter 0 to exit")    
     f = open(filename,"r")
     contant = f.readlines()
     f.close()
     f = open(filename,"w")
+    index = input("Enter a sequence index:")
+    if (index> len(names)):
+        print("Out of range.")
     while(index != 0 and index <= len(names)):
-        mof = str(input("enter the mofit"))
+        mof = raw_input("Enter the mofit:")
         mof_validation = True        
         if len(mof)%3 != 0:
             mof_validation = False
@@ -244,12 +247,12 @@ def edit_param(filename):
                     mof_validation = False
         if mof_validation:
             mof += "\n"
-            print(contant[index*4-1])
             contant[index*4-1] = mof
-            print(contant[index*4-1])
         else:
-            print("Not validated!")
-        index = int(input("Which sequence?"))
+            print("Mofit is not validated! Please check your mofit!")
+        index = input("Enter a sequence index:")
+        if (index> len(names)):
+           print("Out of range.")
     f.writelines(contant)
     f.close()
     
@@ -258,6 +261,7 @@ def edit_param(filename):
 if __name__ == '__main__':
     task = checkinput(sys.argv)
     if task == 1:
+        #for no argument, the distribution is set to 0.25 evenly
         distribution = [
         {"A":float(0.25),"C":float(0.25), "T":float(0.25),"G":float(0.25)}]
         sequence_length = [996]
