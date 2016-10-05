@@ -19,7 +19,7 @@ or --load")
 parser.add_option("--load", help="load the parameter file")
 parser.add_option("--k", help="report dinucleotide and higher-order \
 compositional statistics, must follow the \'--calc\',e.g. --calc .fa --k n")
-parser.add_option("--insert", help="insert mofits to the parameter file. \
+parser.add_option("--insert", help="insert motifs to the parameter file. \
 To use this function, just enter [script] --insert paramterfile, and you'll \
 see instructions.")
 (options, args) = parser.parse_args() 
@@ -166,13 +166,13 @@ def gaussian(seq_len):
 
 #input: filename
 #function: get lists of names,sequence_length,distributions for parameter file
-#return:lists of names,sequence_length,distributions,mofits
+#return:lists of names,sequence_length,distributions,motifs
 def loadparams(filename):
     file = open(filename)
     names = []
     sequence_length = []
     distributions = []
-    mofits = []
+    motifs = []
     count = 0
     for line in file.readlines():
         line = line.replace('\n','')
@@ -190,9 +190,9 @@ def loadparams(filename):
             distributions.append(dictionary)
             count += 1;
         elif count == 3:
-            mofits.append(line)
+            motifs.append(line)
             count = 0
-    return names,sequence_length,distributions,mofits
+    return names,sequence_length,distributions,motifs
 
 #input: k(k-nucleotide), list of sequences
 #function: split sequences every k nucleotides and records them in a dictionary
@@ -209,22 +209,22 @@ def k_mers(k, sequences):
         distribution.append(dictionary)
     print(distribution)
     
-#input: list of sequences and mofits
+#input: list of sequences and motifs
 #function: generate a random position except the at begining and the ending,
-# then replace the position with the mofits
+# then replace the position with the motifs
 #return: list of sequences       
-def insert_mofit(sequences,mofits):
+def insert_motif(sequences,motifs):
     for i in range(0,len(sequences)):
-        position = random.randint(1,(len(sequences[i])-len(mofits[i]))/3)
+        position = random.randint(1,(len(sequences[i])-len(motifs[i]))/3)
         position *= 3
-        sequences[i] = sequences[i][:position] + mofits[i]\
-        +sequences[i][position+len(mofits):]
+        sequences[i] = sequences[i][:position] + motifs[i]\
+        +sequences[i][position+len(motifs):]
     return sequences
     
 #input: filename
-#function: add mofit to parameter
+#function: add motif to parameter
 def edit_param(filename):
-    names,sequence_length,distributions,mofits = loadparams(filename)
+    names,sequence_length,distributions,motifs = loadparams(filename)
     print("There are "+str(len(names))+" sequences. Which sequence do you\
  want to edit? Enter 0 to exit")    
     f = open(filename,"r")
@@ -235,7 +235,7 @@ def edit_param(filename):
     if (index> len(names)):
         print("Out of range.")
     while(index != 0 and index <= len(names)):
-        mof = raw_input("Enter the mofit:")
+        mof = raw_input("Enter the motif:")
         mof_validation = True        
         if len(mof)%3 != 0:
             mof_validation = False
@@ -249,7 +249,7 @@ def edit_param(filename):
             mof += "\n"
             contant[index*4-1] = mof
         else:
-            print("Mofit is not validated! Please check your mofit!")
+            print("Motif is not validated! Please check your motif!")
         index = input("Enter a sequence index:")
         if (index> len(names)):
            print("Out of range.")
@@ -289,14 +289,14 @@ if __name__ == '__main__':
             elif sys.argv[3] == "--k":
                 k_mers(int(sys.argv[4]), sequences)
     elif task == 3:
-        names,sequence_length,distributions,mofits = loadparams(sys.argv[2])
+        names,sequence_length,distributions,motifs = loadparams(sys.argv[2])
         #use gaussian distribution to generate new lengths  
         #but the diviation will become rediculously large(several hundreds) 
         #thus the random sequences saperate in a very large range
         sequence_length = gaussian(sequence_length)
         sequences = generate_sequences(distributions,sequence_length)
         sequences = check(sequences)
-        sequences = insert_mofit(sequences,mofits)
+        sequences = insert_motif(sequences,motifs)
         print_sequences(sequences,names)
         if len(sys.argv) == 5:
             save_parameter(distributions,sequences,names,sys.argv[4])
